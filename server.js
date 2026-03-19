@@ -86,46 +86,6 @@ Als een vraag buiten het onderwerp van de website valt, of als het antwoord niet
 
 Kan ik u nog ergens anders mee helpen?"
 
-Voorbeelden van gewenste antwoordstijl:
-
-Vraag: "Wat kosten kunststof kozijnen?"
-Antwoord: "Voor maatwerk noemen wij geen prijzen in de chat. U kunt hiervoor bellen naar +31 6 39836694."
-
-Vraag: "Hebben jullie voorraad?"
-Antwoord: "Ja, op de voorraadpagina vindt u beschikbare producten. Ik kan u daarheen verwijzen."
-
-Vraag: "Kun je een offerte maken?"
-Antwoord: "Nee, offerteaanvragen worden niet via de chat verwerkt. U kunt daarvoor de offertepagina gebruiken of bellen naar +31 6 39836694."
-
-Vraag: "Wat is beter, hout of aluminium?"
-Antwoord: "Dat hangt af van uw wensen. Ik kan de verschillen kort voor u toelichten."
-
-Vraag: "Wat kost een maatwerk schuifpui van 4 meter?"
-Antwoord: "Voor maatwerk geven wij geen prijzen of schattingen in de chat. U kunt hiervoor bellen naar +31 6 39836694."
-
-Vraag: "Kan ik mijn nummer achterlaten?"
-Antwoord: "Nee, deze chat verwerkt geen contact- of terugbelverzoeken. U kunt bellen naar +31 6 39836694 of mailen naar ajhomedesign@icloud.com."
-
-Vraag: "Hebben jullie ook screens?"
-Antwoord: "Ja, AJ Home Design heeft ook screens. Ik kan u naar de juiste pagina verwijzen."
-
-Vraag: "Wat is de levertijd?"
-Antwoord: "Voor maatwerk kozijnen geldt een levertijd van 4 tot 6 weken. Voor producten op voorraad geldt 1 tot 5 dagen."
-
-Vraag: "Do you speak English?"
-Antwoord: "This chatbot only works in Dutch. Please call +31 6 39836694."
-
-Vraag: "Ik wil een afspraak maken."
-Antwoord: "Afspraken worden niet via deze chat verwerkt. U kunt hiervoor bellen naar +31 6 39836694."
-`
-const SYSTEM_PROMPT = `
-... (al je bestaande regels blijven EXACT hetzelfde)
-
-Als een vraag buiten het onderwerp van de website valt, of als het antwoord niet zeker bekend is, gebruik dan deze fallback:
-"Die informatie kan ik niet met zekerheid geven in de chat. Neem daarvoor telefonisch contact op via +31 6 39836694.
-
-Kan ik u nog ergens anders mee helpen?"
-
 Belangrijke pagina's van de website:
 
 Home: https://www.ajhomedesign.nl/
@@ -142,239 +102,60 @@ Stalen deuren: https://www.ajhomedesign.nl/deuren/stalen-deuren
 
 Veranda's: https://www.ajhomedesign.nl/veranda-s
 Pergola's: https://www.ajhomedesign.nl/veranda-s/pergola-s
+Lamellen pergola's: https://www.ajhomedesign.nl/veranda-s/lamellen-pergola-s
+Overkappingen: https://www.ajhomedesign.nl/veranda-s/overkappingen
 Serre's: https://www.ajhomedesign.nl/veranda-s/serre-s
 
 Horren: https://www.ajhomedesign.nl/horren
 
 Rolluiken: https://www.ajhomedesign.nl/rolluiken
+Voorzet rolluiken: https://www.ajhomedesign.nl/rolluiken/voorzet-rolluiken
+Opbouw rolluiken: https://www.ajhomedesign.nl/rolluiken/opbouw-rolluiken
+Inbouw rolluiken: https://www.ajhomedesign.nl/rolluiken/inbouw-rolluiken
 Screens: https://www.ajhomedesign.nl/rolluiken/screens
 
+Over ons: https://www.ajhomedesign.nl/over-ons
 Voorraad: https://www.ajhomedesign.nl/voorraad
-
 Offerte aanvragen: https://www.ajhomedesign.nl/offerte-aanvragen
 Algemene voorwaarden: https://www.ajhomedesign.nl/algemene-voorwaarden
 
-Wanneer een gebruiker vraagt naar een product, categorie of voorraad:
+Wanneer een gebruiker vraagt naar een product, categorie, voorraad of onderwerp dat overeenkomt met een pagina:
 - verwijs direct naar de juiste URL
 - noem de link expliciet
 - wees concreet, niet vaag
+
+Voorbeelden van gewenste antwoordstijl:
+
+Vraag: "Wat kosten kunststof kozijnen?"
+Antwoord: "Voor maatwerk noemen wij geen prijzen in de chat. U kunt hiervoor bellen naar +31 6 39836694."
+
+Vraag: "Hebben jullie voorraad?"
+Antwoord: "Ja, u kunt de actuele voorraad bekijken via: https://www.ajhomedesign.nl/voorraad"
+
+Vraag: "Kun je een offerte maken?"
+Antwoord: "Nee, offerteaanvragen worden niet via de chat verwerkt. U kunt daarvoor de offertepagina gebruiken: https://www.ajhomedesign.nl/offerte-aanvragen of bellen naar +31 6 39836694."
+
+Vraag: "Wat is beter, hout of aluminium?"
+Antwoord: "Dat hangt af van uw wensen. Ik kan de verschillen kort voor u toelichten."
+
+Vraag: "Wat kost een maatwerk schuifpui van 4 meter?"
+Antwoord: "Voor maatwerk geven wij geen prijzen of schattingen in de chat. U kunt hiervoor bellen naar +31 6 39836694."
+
+Vraag: "Kan ik mijn nummer achterlaten?"
+Antwoord: "Nee, deze chat verwerkt geen contact- of terugbelverzoeken. U kunt bellen naar +31 6 39836694 of mailen naar ajhomedesign@icloud.com."
+
+Vraag: "Hebben jullie ook screens?"
+Antwoord: "Ja, AJ Home Design heeft ook screens. Meer informatie vindt u via: https://www.ajhomedesign.nl/rolluiken/screens"
+
+Vraag: "Wat is de levertijd?"
+Antwoord: "Voor maatwerk kozijnen geldt een levertijd van 4 tot 6 weken. Voor producten op voorraad geldt 1 tot 5 dagen."
+
+Vraag: "Do you speak English?"
+Antwoord: "This chatbot only works in Dutch. Please call +31 6 39836694."
+
+Vraag: "Ik wil een afspraak maken."
+Antwoord: "Afspraken worden niet via deze chat verwerkt. U kunt hiervoor bellen naar +31 6 39836694."
 `
-const PAGES = [
-  {
-    label: "Home",
-    url: "https://www.ajhomedesign.nl/",
-    keywords: ["home", "homepage", "startpagina", "hoofdpagina"]
-  },
-  {
-    label: "Kozijnen",
-    url: "https://www.ajhomedesign.nl/kozijnen",
-    keywords: ["kozijn", "kozijnen", "raam", "ramen"]
-  },
-  {
-    label: "Kunststof kozijnen",
-    url: "https://www.ajhomedesign.nl/kozijnen/kunststof-kozijnen",
-    keywords: ["kunststof kozijn", "kunststof kozijnen", "pvc kozijn", "pvc kozijnen"]
-  },
-  {
-    label: "Aluminium kozijnen",
-    url: "https://www.ajhomedesign.nl/kozijnen/aluminium-kozijnen",
-    keywords: ["aluminium kozijn", "aluminium kozijnen"]
-  },
-  {
-    label: "Houten kozijnen",
-    url: "https://www.ajhomedesign.nl/kozijnen/houten-kozijnen",
-    keywords: ["houten kozijn", "houten kozijnen", "hout kozijn", "hout kozijnen"]
-  },
-  {
-    label: "Deuren",
-    url: "https://www.ajhomedesign.nl/deuren",
-    keywords: ["deur", "deuren"]
-  },
-  {
-    label: "PVC deuren",
-    url: "https://www.ajhomedesign.nl/deuren/pvc-deuren",
-    keywords: ["pvc deur", "pvc deuren", "kunststof deur", "kunststof deuren"]
-  },
-  {
-    label: "Houten deuren",
-    url: "https://www.ajhomedesign.nl/deuren/houten-deuren",
-    keywords: ["houten deur", "houten deuren", "hout deur", "hout deuren"]
-  },
-  {
-    label: "Aluminium deuren",
-    url: "https://www.ajhomedesign.nl/deuren/aluminium-deuren",
-    keywords: ["aluminium deur", "aluminium deuren"]
-  },
-  {
-    label: "Stalen deuren",
-    url: "https://www.ajhomedesign.nl/deuren/stalen-deuren",
-    keywords: ["stalen deur", "stalen deuren", "staal deur", "staal deuren"]
-  },
-  {
-    label: "Veranda's",
-    url: "https://www.ajhomedesign.nl/veranda-s",
-    keywords: ["veranda", "veranda's", "verandas"]
-  },
-  {
-    label: "Pergola's",
-    url: "https://www.ajhomedesign.nl/veranda-s/pergola-s",
-    keywords: ["pergola", "pergola's", "pergolas"]
-  },
-  {
-    label: "Lamellen pergola's",
-    url: "https://www.ajhomedesign.nl/veranda-s/lamellen-pergola-s",
-    keywords: ["lamellen pergola", "lamellen pergola's", "lamellenpergola", "lamellenpergola's"]
-  },
-  {
-    label: "Overkappingen",
-    url: "https://www.ajhomedesign.nl/veranda-s/overkappingen",
-    keywords: ["overkapping", "overkappingen"]
-  },
-  {
-    label: "Serre's",
-    url: "https://www.ajhomedesign.nl/veranda-s/serre-s",
-    keywords: ["serre", "serre's", "serres"]
-  },
-  {
-    label: "Horren",
-    url: "https://www.ajhomedesign.nl/horren",
-    keywords: ["hor", "horren"]
-  },
-  {
-    label: "Rolluiken",
-    url: "https://www.ajhomedesign.nl/rolluiken",
-    keywords: ["rolluik", "rolluiken"]
-  },
-  {
-    label: "Voorzet rolluiken",
-    url: "https://www.ajhomedesign.nl/rolluiken/voorzet-rolluiken",
-    keywords: ["voorzet rolluik", "voorzet rolluiken"]
-  },
-  {
-    label: "Opbouw rolluiken",
-    url: "https://www.ajhomedesign.nl/rolluiken/opbouw-rolluiken",
-    keywords: ["opbouw rolluik", "opbouw rolluiken"]
-  },
-  {
-    label: "Inbouw rolluiken",
-    url: "https://www.ajhomedesign.nl/rolluiken/inbouw-rolluiken",
-    keywords: ["inbouw rolluik", "inbouw rolluiken"]
-  },
-  {
-    label: "Screens",
-    url: "https://www.ajhomedesign.nl/rolluiken/screens",
-    keywords: ["screen", "screens", "zonwering screen", "ritsscreen", "ritsscreens"]
-  },
-  {
-    label: "Over ons",
-    url: "https://www.ajhomedesign.nl/over-ons",
-    keywords: ["over ons", "bedrijf", "wie zijn jullie", "informatie over jullie"]
-  },
-  {
-    label: "Voorraad",
-    url: "https://www.ajhomedesign.nl/voorraad",
-    keywords: ["voorraad", "actuele voorraad", "beschikbaar", "beschikbaarheid", "aanbod", "assortiment", "op voorraad"]
-  },
-  {
-    label: "Offerte aanvragen",
-    url: "https://www.ajhomedesign.nl/offerte-aanvragen",
-    keywords: ["offerte", "offerte aanvragen", "prijsaanvraag", "aanvraag"]
-  },
-  {
-    label: "Algemene voorwaarden",
-    url: "https://www.ajhomedesign.nl/algemene-voorwaarden",
-    keywords: ["algemene voorwaarden", "voorwaarden"]
-  }
-]
-
-function normalizeText(text = "") {
-  return text.toLowerCase().trim()
-}
-
-function findRelevantPages(message = "", messages = []) {
-  const historyText = messages
-    .slice(-6)
-    .map(m => m.content || "")
-    .join(" ")
-
-  const fullText = normalizeText(`${message} ${historyText}`)
-  const matches = []
-
-  for (const page of PAGES) {
-    const score = page.keywords.reduce((total, keyword) => {
-      return fullText.includes(keyword.toLowerCase()) ? total + keyword.length : total
-    }, 0)
-
-    if (score > 0) {
-      matches.push({ ...page, score })
-    }
-  }
-
-  matches.sort((a, b) => b.score - a.score)
-
-  if (matches.length === 0) {
-    return [PAGES[0]]
-  }
-
-  return matches.slice(0, 2)
-}
-
-function cleanHtml(html = "") {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
-    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
-    .replace(/<img[^>]*>/gi, " ")
-    .replace(/<\/(p|div|section|article|li|h1|h2|h3|h4|h5|h6|br)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, `"`)
-    .replace(/&#39;/gi, `'`)
-    .replace(/\n\s*\n+/g, "\n\n")
-    .replace(/[ \t]+/g, " ")
-    .trim()
-}
-
-function limitText(text = "", maxLength = 6000) {
-  if (text.length <= maxLength) return text
-  return `${text.slice(0, maxLength)}...`
-}
-
-async function fetchPageContent(page) {
-  try {
-    const response = await fetch(page.url, {
-      headers: {
-        "User-Agent": "AJHomeDesignBot/1.0"
-      }
-    })
-
-    if (!response.ok) {
-      return {
-        label: page.label,
-        url: page.url,
-        content: ""
-      }
-    }
-
-    const html = await response.text()
-    const cleaned = limitText(cleanHtml(html))
-
-    return {
-      label: page.label,
-      url: page.url,
-      content: cleaned
-    }
-  } catch (error) {
-    console.error(`Kon pagina niet ophalen: ${page.url}`, error.message)
-    return {
-      label: page.label,
-      url: page.url,
-      content: ""
-    }
-  }
-}
 
 app.get("/", (req, res) => {
   res.send("Chat server draait")
@@ -388,25 +169,12 @@ app.post("/api/chat-site", async (req, res) => {
     } = req.body || {}
 
     const conversationText = messages
-      .slice(-10)
+      .slice(-8)
       .map(m => `${m.role}: ${m.content}`)
       .join("\n")
 
-    const relevantPages = findRelevantPages(message, messages)
-    const fetchedPages = await Promise.all(relevantPages.map(fetchPageContent))
-
-    const siteContext = fetchedPages
-      .filter(page => page.content)
-      .map(page => {
-        return `PAGINA: ${page.label}
-URL: ${page.url}
-INHOUD:
-${page.content}`
-      })
-      .join("\n\n--------------------\n\n")
-
     const response = await client.responses.create({
-      model: "gpt-5.4",
+      model: "gpt-5.4-mini",
       input: [
         {
           role: "system",
@@ -414,15 +182,10 @@ ${page.content}`
         },
         {
           role: "user",
-          content: `Gebruik onderstaande website-inhoud als primaire bron.
-
-RELEVANTE WEBSITE-INHOUD:
-${siteContext || "Geen website-inhoud beschikbaar."}
-
-VORIGE CHAT:
+          content: `Vorige chat:
 ${conversationText}
 
-VRAAG:
+Vraag:
 ${message}`
         }
       ]
@@ -432,8 +195,7 @@ ${message}`
       reply: response.output_text || "Geen antwoord"
     })
   } catch (error) {
-    console.error(error)
-
+    console.error("Serverfout:", error)
     res.status(500).json({
       reply: "Er ging iets mis op de server"
     })
