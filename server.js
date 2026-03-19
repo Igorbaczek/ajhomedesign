@@ -123,6 +123,8 @@ Wanneer een gebruiker vraagt naar een product, categorie, voorraad of onderwerp 
 - verwijs direct naar de juiste URL
 - noem de link expliciet
 - wees concreet, niet vaag
+- zeg nooit dat je geen website-inhoud, URL of pagina-informatie hebt
+- gebruik altijd de bekende pagina's uit deze prompt als bron voor links
 
 Voorbeelden van gewenste antwoordstijl:
 
@@ -155,6 +157,12 @@ Antwoord: "This chatbot only works in Dutch. Please call +31 6 39836694."
 
 Vraag: "Ik wil een afspraak maken."
 Antwoord: "Afspraken worden niet via deze chat verwerkt. U kunt hiervoor bellen naar +31 6 39836694."
+
+Vraag: "Stuur me de link naar aluminium kozijnen."
+Antwoord: "U vindt aluminium kozijnen via: https://www.ajhomedesign.nl/kozijnen/aluminium-kozijnen"
+
+Vraag: "Voorraad?"
+Antwoord: "U kunt de actuele voorraad bekijken via: https://www.ajhomedesign.nl/voorraad"
 `
 
 app.get("/", (req, res) => {
@@ -182,10 +190,12 @@ app.post("/api/chat-site", async (req, res) => {
         },
         {
           role: "user",
-          content: `Vorige chat:
+          content: `Beantwoord de vraag op basis van de bedrijfsregels en bekende pagina's.
+
+VORIGE CHAT:
 ${conversationText}
 
-Vraag:
+VRAAG:
 ${message}`
         }
       ]
@@ -203,5 +213,5 @@ ${message}`
 })
 
 app.listen(port, () => {
-  console.log(\`Server draait op poort ${port}`)
+  console.log(`Server draait op poort ${port}`)
 })
