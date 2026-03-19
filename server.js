@@ -203,5 +203,5 @@ ${message}`
 })
 
 app.listen(port, () => {
-  console.log(\`Server draait op poort \${port}\`)
+  console.log(\`Server draait op poort ${port}`)
 })
