@@ -1,19 +1,19 @@
-import express from "express"
-import cors from "cors"
-import dotenv from "dotenv"
-import OpenAI from "openai"
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import OpenAI from "openai";
 
-dotenv.config()
+dotenv.config();
 
-const app = express()
-const port = process.env.PORT || 3000
+const app = express();
+const port = process.env.PORT || 3000;
 
-app.use(cors())
-app.use(express.json({ limit: "1mb" }))
+app.use(cors());
+app.use(express.json({ limit: "1mb" }));
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
-})
+});
 
 const SYSTEM_PROMPT = `
 Correcte spelling en zinsopbouw, maak gebruik van alinea's en geef indien mogelijk een zo kort mogelijk antwoord zonder kortaf te zijn. Geef de gebruiker altijd de mogelijkheid om door te vragen.
@@ -127,74 +127,178 @@ Over ons: https://www.ajhomedesign.nl/over-ons
 Voorraad: https://www.ajhomedesign.nl/voorraad
 Offerte aanvragen: https://www.ajhomedesign.nl/offerte-aanvragen
 Algemene voorwaarden: https://www.ajhomedesign.nl/algemene-voorwaarden
+`;
 
-Wanneer een gebruiker vraagt naar een product, categorie, voorraad of onderwerp dat overeenkomt met een pagina:
-- verwijs direct naar de juiste URL
-- noem de link expliciet
-- wees concreet, niet vaag
-- zeg nooit dat je geen website-inhoud, URL of pagina-informatie hebt
-- gebruik altijd de bekende pagina's uit deze prompt als bron voor links
+const SITE_PAGES = [
+  { title: "Home", url: "https://www.ajhomedesign.nl/" },
+  { title: "Kozijnen", url: "https://www.ajhomedesign.nl/kozijnen" },
+  { title: "Kunststof kozijnen", url: "https://www.ajhomedesign.nl/kozijnen/kunststof-kozijnen" },
+  { title: "Aluminium kozijnen", url: "https://www.ajhomedesign.nl/kozijnen/aluminium-kozijnen" },
+  { title: "Houten kozijnen", url: "https://www.ajhomedesign.nl/kozijnen/houten-kozijnen" },
+  { title: "Deuren", url: "https://www.ajhomedesign.nl/deuren" },
+  { title: "PVC deuren", url: "https://www.ajhomedesign.nl/deuren/pvc-deuren" },
+  { title: "Houten deuren", url: "https://www.ajhomedesign.nl/deuren/houten-deuren" },
+  { title: "Aluminium deuren", url: "https://www.ajhomedesign.nl/deuren/aluminium-deuren" },
+  { title: "Stalen deuren", url: "https://www.ajhomedesign.nl/deuren/stalen-deuren" },
+  { title: "Veranda's", url: "https://www.ajhomedesign.nl/veranda-s" },
+  { title: "Pergola's", url: "https://www.ajhomedesign.nl/veranda-s/pergola-s" },
+  { title: "Lamellen pergola's", url: "https://www.ajhomedesign.nl/veranda-s/lamellen-pergola-s" },
+  { title: "Overkappingen", url: "https://www.ajhomedesign.nl/veranda-s/overkappingen" },
+  { title: "Serre's", url: "https://www.ajhomedesign.nl/veranda-s/serre-s" },
+  { title: "Horren", url: "https://www.ajhomedesign.nl/horren" },
+  { title: "Rolluiken", url: "https://www.ajhomedesign.nl/rolluiken" },
+  { title: "Voorzet rolluiken", url: "https://www.ajhomedesign.nl/rolluiken/voorzet-rolluiken" },
+  { title: "Opbouw rolluiken", url: "https://www.ajhomedesign.nl/rolluiken/opbouw-rolluiken" },
+  { title: "Inbouw rolluiken", url: "https://www.ajhomedesign.nl/rolluiken/inbouw-rolluiken" },
+  { title: "Screens", url: "https://www.ajhomedesign.nl/rolluiken/screens" },
+  { title: "Over ons", url: "https://www.ajhomedesign.nl/over-ons" },
+  { title: "Voorraad", url: "https://www.ajhomedesign.nl/voorraad" },
+  { title: "Offerte aanvragen", url: "https://www.ajhomedesign.nl/offerte-aanvragen" },
+  { title: "Algemene voorwaarden", url: "https://www.ajhomedesign.nl/algemene-voorwaarden" }
+];
 
-Voorbeelden van gewenste antwoordstijl:
+let siteCache = [];
+let siteCacheUpdatedAt = null;
 
-Vraag: "Wat kosten kunststof kozijnen?"
-Antwoord: "Voor maatwerk noemen wij geen prijzen in de chat. U kunt hiervoor bellen naar +31 6 39836694."
+function stripHtml(html) {
+  return html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
+    .replace(/<img[^>]*>/gi, " ")
+    .replace(/<\/(p|div|section|article|li|h1|h2|h3|h4|h5|h6|br)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/\s+\n/g, "\n")
+    .replace(/\n\s+/g, "\n")
+    .replace(/\n{2,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
 
-Vraag: "Hebben jullie voorraad?"
-Antwoord: "Ja, u kunt de actuele voorraad bekijken via: https://www.ajhomedesign.nl/voorraad"
+async function fetchPageText(page) {
+  try {
+    const response = await fetch(page.url, {
+      headers: {
+        "User-Agent": "AJHomeDesignBot/1.0"
+      }
+    });
 
-Vraag: "Kun je een offerte maken?"
-Antwoord: "Nee, offerteaanvragen worden niet via de chat verwerkt. U kunt daarvoor de offertepagina gebruiken: https://www.ajhomedesign.nl/offerte-aanvragen of bellen naar +31 6 39836694."
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
 
-Vraag: "Wat is beter, hout of aluminium?"
-Antwoord: "Dat hangt af van uw wensen. Ik kan de verschillen kort voor u toelichten."
+    const html = await response.text();
+    const text = stripHtml(html).slice(0, 8000);
 
-Vraag: "Wat kost een maatwerk schuifpui van 4 meter?"
-Antwoord: "Voor maatwerk geven wij geen prijzen of schattingen in de chat. U kunt hiervoor bellen naar +31 6 39836694."
+    return {
+      title: page.title,
+      url: page.url,
+      text
+    };
+  } catch (error) {
+    console.error(`Fout bij ophalen van ${page.url}:`, error.message);
+    return {
+      title: page.title,
+      url: page.url,
+      text: ""
+    };
+  }
+}
 
-Vraag: "Kan ik mijn nummer achterlaten?"
-Antwoord: "Nee, deze chat verwerkt geen contact- of terugbelverzoeken. U kunt bellen naar +31 6 39836694 of mailen naar ajhomedesign@icloud.com."
+async function refreshSiteCache() {
+  console.log("Website-cache verversen...");
+  const results = await Promise.all(SITE_PAGES.map(fetchPageText));
+  siteCache = results.filter(page => page.text && page.text.length > 50);
+  siteCacheUpdatedAt = new Date().toISOString();
+  console.log(`Website-cache bijgewerkt: ${siteCache.length} pagina's`);
+}
 
-Vraag: "Hebben jullie ook screens?"
-Antwoord: "Ja, AJ Home Design heeft ook screens. Meer informatie vindt u via: https://www.ajhomedesign.nl/rolluiken/screens"
+function tokenize(text) {
+  return (text || "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
+    .split(/\s+/)
+    .filter(word => word.length > 2);
+}
 
-Vraag: "Wat is de levertijd?"
-Antwoord: "Voor maatwerk kozijnen geldt een levertijd van 4 tot 6 weken. Voor producten op voorraad geldt 1 tot 5 dagen."
+function getRelevantPages(question, maxPages = 4) {
+  const qWords = tokenize(question);
+  if (qWords.length === 0) {
+    return siteCache.slice(0, maxPages);
+  }
 
-Vraag: "Do you speak English?"
-Antwoord: "This chatbot only works in Dutch. Please call +31 6 39836694."
+  const scored = siteCache.map(page => {
+    const haystack = `${page.title} ${page.url} ${page.text}`.toLowerCase();
+    let score = 0;
 
-Vraag: "Ik wil een afspraak maken."
-Antwoord: "Afspraken worden niet via deze chat verwerkt. U kunt hiervoor bellen naar +31 6 39836694."
+    for (const word of qWords) {
+      if (page.title.toLowerCase().includes(word)) score += 6;
+      if (page.url.toLowerCase().includes(word)) score += 4;
+      if (haystack.includes(word)) score += 1;
+    }
 
-Vraag: "Stuur me de link naar aluminium kozijnen."
-Antwoord: "U vindt aluminium kozijnen via: https://www.ajhomedesign.nl/kozijnen/aluminium-kozijnen"
+    return { ...page, score };
+  });
 
-Vraag: "Voorraad?"
-Antwoord: "U kunt de actuele voorraad bekijken via: https://www.ajhomedesign.nl/voorraad"
+  return scored
+    .sort((a, b) => b.score - a.score)
+    .slice(0, maxPages);
+}
 
-Vraag: "Nee"
-Antwoord: "Prima, dank u wel voor uw bericht. Mocht u in de toekomst nog vragen hebben, dan help ik u graag verder. Fijne dag gewenst."
-`
+function buildWebsiteContext(question) {
+  const pages = getRelevantPages(question, 4);
+
+  return pages
+    .map(page => {
+      const text = page.text.slice(0, 3500);
+      return `PAGINA: ${page.title}
+URL: ${page.url}
+INHOUD:
+${text}`;
+    })
+    .join("\n\n----------------------\n\n");
+}
 
 app.get("/", (req, res) => {
-  res.send("Chat server draait")
-})
+  res.send("Chat server draait");
+});
+
+app.get("/health", (req, res) => {
+  res.json({
+    ok: true,
+    cachedPages: siteCache.length,
+    cacheUpdatedAt: siteCacheUpdatedAt
+  });
+});
 
 app.post("/api/chat-site", async (req, res) => {
   try {
-    const {
-      message = "",
-      messages = []
-    } = req.body || {}
+    const { message = "", messages = [] } = req.body || {};
+
+    if (!message.trim()) {
+      return res.status(400).json({
+        reply: "Er is geen bericht ontvangen."
+      });
+    }
+
+    if (siteCache.length === 0) {
+      await refreshSiteCache();
+    }
 
     const conversationText = messages
       .slice(-8)
       .map(m => `${m.role}: ${m.content}`)
-      .join("\n")
+      .join("\n");
+
+    const websiteContext = buildWebsiteContext(message);
 
     const response = await client.responses.create({
-      model: "gpt-5.4-mini",
+      model: "gpt-5.4",
       input: [
         {
           role: "system",
@@ -202,7 +306,15 @@ app.post("/api/chat-site", async (req, res) => {
         },
         {
           role: "user",
-          content: `Beantwoord de vraag op basis van de bedrijfsregels en bekende pagina's.
+          content: `Beantwoord de vraag uitsluitend op basis van:
+1. de bedrijfsregels,
+2. de hieronder meegestuurde website-inhoud,
+3. de vorige chat.
+
+Als de informatie niet duidelijk of niet zeker in de website-inhoud staat, gebruik dan de fallback uit de instructies.
+
+WEBSITE-INHOUD:
+${websiteContext}
 
 VORIGE CHAT:
 ${conversationText}
@@ -211,19 +323,28 @@ VRAAG:
 ${message}`
         }
       ]
-    })
+    });
 
     res.json({
       reply: response.output_text || "Geen antwoord"
-    })
+    });
   } catch (error) {
-    console.error("Serverfout:", error)
+    console.error("Serverfout:", error);
     res.status(500).json({
       reply: "Er ging iets mis op de server"
-    })
+    });
   }
-})
+});
 
-app.listen(port, () => {
-  console.log(`Server draait op poort ${port}`)
-})
+app.listen(port, async () => {
+  console.log(`Server draait op poort ${port}`);
+  await refreshSiteCache();
+
+  setInterval(async () => {
+    try {
+      await refreshSiteCache();
+    } catch (error) {
+      console.error("Cache-refresh mislukt:", error);
+    }
+  }, 1000 * 60 * 30);
+});
