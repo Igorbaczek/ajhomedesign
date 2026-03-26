@@ -9,7 +9,7 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 
 const client = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
@@ -127,142 +127,14 @@ Over ons: https://www.ajhomedesign.nl/over-ons
 Voorraad: https://www.ajhomedesign.nl/voorraad
 Offerte aanvragen: https://www.ajhomedesign.nl/offerte-aanvragen
 Algemene voorwaarden: https://www.ajhomedesign.nl/algemene-voorwaarden
+
+Wanneer een gebruiker vraagt naar een product, categorie, voorraad of onderwerp dat overeenkomt met een pagina:
+- verwijs direct naar de juiste URL
+- noem de link expliciet
+- wees concreet, niet vaag
+- zeg nooit dat je geen website-inhoud, URL of pagina-informatie hebt
+- gebruik altijd de bekende pagina's uit deze prompt als bron voor links
 `;
-
-const SITE_PAGES = [
-  { title: "Home", url: "https://www.ajhomedesign.nl/" },
-  { title: "Kozijnen", url: "https://www.ajhomedesign.nl/kozijnen" },
-  { title: "Kunststof kozijnen", url: "https://www.ajhomedesign.nl/kozijnen/kunststof-kozijnen" },
-  { title: "Aluminium kozijnen", url: "https://www.ajhomedesign.nl/kozijnen/aluminium-kozijnen" },
-  { title: "Houten kozijnen", url: "https://www.ajhomedesign.nl/kozijnen/houten-kozijnen" },
-  { title: "Deuren", url: "https://www.ajhomedesign.nl/deuren" },
-  { title: "PVC deuren", url: "https://www.ajhomedesign.nl/deuren/pvc-deuren" },
-  { title: "Houten deuren", url: "https://www.ajhomedesign.nl/deuren/houten-deuren" },
-  { title: "Aluminium deuren", url: "https://www.ajhomedesign.nl/deuren/aluminium-deuren" },
-  { title: "Stalen deuren", url: "https://www.ajhomedesign.nl/deuren/stalen-deuren" },
-  { title: "Veranda's", url: "https://www.ajhomedesign.nl/veranda-s" },
-  { title: "Pergola's", url: "https://www.ajhomedesign.nl/veranda-s/pergola-s" },
-  { title: "Lamellen pergola's", url: "https://www.ajhomedesign.nl/veranda-s/lamellen-pergola-s" },
-  { title: "Overkappingen", url: "https://www.ajhomedesign.nl/veranda-s/overkappingen" },
-  { title: "Serre's", url: "https://www.ajhomedesign.nl/veranda-s/serre-s" },
-  { title: "Horren", url: "https://www.ajhomedesign.nl/horren" },
-  { title: "Rolluiken", url: "https://www.ajhomedesign.nl/rolluiken" },
-  { title: "Voorzet rolluiken", url: "https://www.ajhomedesign.nl/rolluiken/voorzet-rolluiken" },
-  { title: "Opbouw rolluiken", url: "https://www.ajhomedesign.nl/rolluiken/opbouw-rolluiken" },
-  { title: "Inbouw rolluiken", url: "https://www.ajhomedesign.nl/rolluiken/inbouw-rolluiken" },
-  { title: "Screens", url: "https://www.ajhomedesign.nl/rolluiken/screens" },
-  { title: "Over ons", url: "https://www.ajhomedesign.nl/over-ons" },
-  { title: "Voorraad", url: "https://www.ajhomedesign.nl/voorraad" },
-  { title: "Offerte aanvragen", url: "https://www.ajhomedesign.nl/offerte-aanvragen" },
-  { title: "Algemene voorwaarden", url: "https://www.ajhomedesign.nl/algemene-voorwaarden" }
-];
-
-let siteCache = [];
-let siteCacheUpdatedAt = null;
-
-function stripHtml(html) {
-  return html
-    .replace(/<script[\s\S]*?<\/script>/gi, " ")
-    .replace(/<style[\s\S]*?<\/style>/gi, " ")
-    .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
-    .replace(/<svg[\s\S]*?<\/svg>/gi, " ")
-    .replace(/<img[^>]*>/gi, " ")
-    .replace(/<\/(p|div|section|article|li|h1|h2|h3|h4|h5|h6|br)>/gi, "\n")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/\s+\n/g, "\n")
-    .replace(/\n\s+/g, "\n")
-    .replace(/\n{2,}/g, "\n\n")
-    .replace(/[ \t]{2,}/g, " ")
-    .trim();
-}
-
-async function fetchPageText(page) {
-  try {
-    const response = await fetch(page.url, {
-      headers: {
-        "User-Agent": "AJHomeDesignBot/1.0"
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const html = await response.text();
-    const text = stripHtml(html).slice(0, 8000);
-
-    return {
-      title: page.title,
-      url: page.url,
-      text
-    };
-  } catch (error) {
-    console.error(`Fout bij ophalen van ${page.url}:`, error.message);
-    return {
-      title: page.title,
-      url: page.url,
-      text: ""
-    };
-  }
-}
-
-async function refreshSiteCache() {
-  console.log("Website-cache verversen...");
-  const results = await Promise.all(SITE_PAGES.map(fetchPageText));
-  siteCache = results.filter(page => page.text && page.text.length > 50);
-  siteCacheUpdatedAt = new Date().toISOString();
-  console.log(`Website-cache bijgewerkt: ${siteCache.length} pagina's`);
-}
-
-function tokenize(text) {
-  return (text || "")
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s-]/gu, " ")
-    .split(/\s+/)
-    .filter(word => word.length > 2);
-}
-
-function getRelevantPages(question, maxPages = 4) {
-  const qWords = tokenize(question);
-  if (qWords.length === 0) {
-    return siteCache.slice(0, maxPages);
-  }
-
-  const scored = siteCache.map(page => {
-    const haystack = `${page.title} ${page.url} ${page.text}`.toLowerCase();
-    let score = 0;
-
-    for (const word of qWords) {
-      if (page.title.toLowerCase().includes(word)) score += 6;
-      if (page.url.toLowerCase().includes(word)) score += 4;
-      if (haystack.includes(word)) score += 1;
-    }
-
-    return { ...page, score };
-  });
-
-  return scored
-    .sort((a, b) => b.score - a.score)
-    .slice(0, maxPages);
-}
-
-function buildWebsiteContext(question) {
-  const pages = getRelevantPages(question, 4);
-
-  return pages
-    .map(page => {
-      const text = page.text.slice(0, 3500);
-      return `PAGINA: ${page.title}
-URL: ${page.url}
-INHOUD:
-${text}`;
-    })
-    .join("\n\n----------------------\n\n");
-}
 
 app.get("/", (req, res) => {
   res.send("Chat server draait");
@@ -270,15 +142,19 @@ app.get("/", (req, res) => {
 
 app.get("/health", (req, res) => {
   res.json({
-    ok: true,
-    cachedPages: siteCache.length,
-    cacheUpdatedAt: siteCacheUpdatedAt
+    ok: true
   });
 });
 
 app.post("/api/chat-site", async (req, res) => {
   try {
-    const { message = "", messages = [] } = req.body || {};
+    const {
+      message = "",
+      messages = [],
+      pageTitle = "",
+      pageUrl = "",
+      pageText = ""
+    } = req.body || {};
 
     if (!message.trim()) {
       return res.status(400).json({
@@ -286,19 +162,19 @@ app.post("/api/chat-site", async (req, res) => {
       });
     }
 
-    if (siteCache.length === 0) {
-      await refreshSiteCache();
-    }
+    const safeMessages = Array.isArray(messages) ? messages.slice(-8) : [];
 
-    const conversationText = messages
-      .slice(-8)
-      .map(m => `${m.role}: ${m.content}`)
+    const conversationText = safeMessages
+      .map((m) => `${m.role}: ${m.content}`)
       .join("\n");
 
-    const websiteContext = buildWebsiteContext(message);
+    const cleanedPageText = String(pageText || "")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+      .slice(0, 12000);
 
     const response = await client.responses.create({
-      model: "gpt-5.4",
+      model: "gpt-5.4-mini",
       input: [
         {
           role: "system",
@@ -308,13 +184,19 @@ app.post("/api/chat-site", async (req, res) => {
           role: "user",
           content: `Beantwoord de vraag uitsluitend op basis van:
 1. de bedrijfsregels,
-2. de hieronder meegestuurde website-inhoud,
+2. de huidige pagina-inhoud,
 3. de vorige chat.
 
-Als de informatie niet duidelijk of niet zeker in de website-inhoud staat, gebruik dan de fallback uit de instructies.
+Als de informatie niet duidelijk of niet zeker in de huidige pagina-inhoud of de bedrijfsregels staat, gebruik dan de fallback uit de instructies.
 
-WEBSITE-INHOUD:
-${websiteContext}
+HUIDIGE PAGINA TITEL:
+${pageTitle}
+
+HUIDIGE PAGINA URL:
+${pageUrl}
+
+HUIDIGE PAGINA INHOUD:
+${cleanedPageText}
 
 VORIGE CHAT:
 ${conversationText}
@@ -336,15 +218,6 @@ ${message}`
   }
 });
 
-app.listen(port, async () => {
+app.listen(port, () => {
   console.log(`Server draait op poort ${port}`);
-  await refreshSiteCache();
-
-  setInterval(async () => {
-    try {
-      await refreshSiteCache();
-    } catch (error) {
-      console.error("Cache-refresh mislukt:", error);
-    }
-  }, 1000 * 60 * 30);
 });
